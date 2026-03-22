@@ -24,6 +24,7 @@ interface PreferencesState {
   lastSessionDate: string;
   onboardingComplete: boolean;
   hapticsEnabled: boolean;
+  reminderEnabled: boolean;
   reminderTime: string;
 
   setUserName: (name: string) => void;
@@ -31,6 +32,8 @@ interface PreferencesState {
   setDefaultBeadCount: (count: number) => void;
   setOnboardingComplete: (complete: boolean) => void;
   setHapticsEnabled: (enabled: boolean) => void;
+  setReminderEnabled: (enabled: boolean) => void;
+  setReminderTime: (time: string) => void;
   updateStreak: (dateStr: string) => { streakUpdated: boolean, newStreak: number };
 }
 
@@ -45,6 +48,7 @@ export const usePreferencesStore = create<PreferencesState>()(
       lastSessionDate: '',
       onboardingComplete: false,
       hapticsEnabled: true,
+      reminderEnabled: false,
       reminderTime: '06:00',
 
       setUserName: (name) => set({ userName: name }),
@@ -52,6 +56,8 @@ export const usePreferencesStore = create<PreferencesState>()(
       setDefaultBeadCount: (count) => set({ defaultBeadCount: count }),
       setOnboardingComplete: (complete) => set({ onboardingComplete: complete }),
       setHapticsEnabled: (enabled) => set({ hapticsEnabled: enabled }),
+      setReminderEnabled: (enabled) => set({ reminderEnabled: enabled }),
+      setReminderTime: (time) => set({ reminderTime: time }),
       
       updateStreak: (dateStr) => {
         const { lastSessionDate, currentStreak, bestStreak } = get();

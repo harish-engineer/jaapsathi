@@ -1,11 +1,54 @@
-import { View, Text, Switch, Pressable, ScrollView, Alert } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Switch, Pressable, ScrollView, Alert, Modal, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { usePreferencesStore } from '../../store/preferencesStore';
-import { Bell, Flame } from 'lucide-react-native';
+import { Bell, Flame, Check } from 'lucide-react-native';
+import { scheduleDailyReminder, cancelDailyReminder, requestNotificationPermissions } from '../../lib/notifications';
+
+// Generate time options every 30 mins
+const TIME_OPTIONS: string[] = [];
+for (let h = 4; h <= 22; h++) {
+  TIME_OPTIONS.push(`${String(h).padStart(2, '0')}:00`);
+  TIME_OPTIONS.push(`${String(h).padStart(2, '0')}:30`);
+}
+
+function formatTime(t: string) {
+  const [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+}
 
 export default function ProfileScreen() {
   const preferences = usePreferencesStore();
   const router = useRouter();
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  const handleReminderToggle = async (value: boolean) => {
+    if (value) {
+      const granted = await requestNotificationPermissions();
+      if (!granted) {
+        Alert.alert(
+          'Permission Required',
+          'Please enable notifications in your device settings to use daily reminders.',
+        );
+        return;
+      }
+      await scheduleDailyReminder(preferences.reminderTime, preferences.userName);
+      preferences.setReminderEnabled(true);
+    } else {
+      await cancelDailyReminder();
+      preferences.setReminderEnabled(false);
+    }
+  };
+
+  const handleTimeSelect = async (time: string) => {
+    preferences.setReminderTime(time);
+    setShowTimePicker(false);
+    if (preferences.reminderEnabled) {
+      await scheduleDailyReminder(time, preferences.userName);
+    }
+  };
 
   return (
     <ScrollView className="flex-1 bg-background-primary">
@@ -18,6 +61,7 @@ export default function ProfileScreen() {
       </View>
 
       <View className="px-4">
+        {/* Streak + Haptics + Reminder */}
         <View className="bg-background-surface rounded-2xl border border-border p-4 mb-6">
           <View className="flex-row items-center mb-4 pb-4 border-b border-border">
             <Flame color="#D47C2A" size={24} />
@@ -37,15 +81,38 @@ export default function ProfileScreen() {
             />
           </View>
           
-          <View className="flex-row justify-between items-center py-2 mt-2">
-            <Text className="text-text-primary text-base">Daily Reminder</Text>
-            <View className="flex-row items-center border border-border bg-background-surfaceAlt px-3 py-1 rounded-lg">
-               <Bell size={16} color="#A08060" />
-               <Text className="text-text-secondary ml-2 font-medium">{preferences.reminderTime}</Text>
+          {/* Daily Reminder row */}
+          <View className="mt-3 pt-3 border-t border-border">
+            <View className="flex-row justify-between items-center">
+              <View className="flex-row items-center">
+                <Bell size={18} color={preferences.reminderEnabled ? '#D47C2A' : '#A08060'} />
+                <Text className="text-text-primary text-base ml-2">Daily Reminder</Text>
+              </View>
+              <Switch
+                value={preferences.reminderEnabled}
+                onValueChange={handleReminderToggle}
+                trackColor={{ false: '#E8D5B0', true: '#D47C2A' }}
+                thumbColor={'#FFFFFF'}
+              />
             </View>
+
+            {/* Time selector — only shown when enabled */}
+            {preferences.reminderEnabled && (
+              <Pressable
+                onPress={() => setShowTimePicker(true)}
+                className="mt-3 flex-row items-center justify-between bg-background-surfaceAlt border border-border rounded-xl px-4 py-3 active:opacity-70"
+              >
+                <Text className="text-text-secondary text-sm font-medium">Reminder Time</Text>
+                <View className="flex-row items-center bg-accent-bright/15 px-3 py-1.5 rounded-lg border border-accent-bright/30">
+                  <Bell size={14} color="#D47C2A" />
+                  <Text className="text-accent-bright font-bold ml-2">{formatTime(preferences.reminderTime)}</Text>
+                </View>
+              </Pressable>
+            )}
           </View>
         </View>
 
+        {/* Settings */}
         <View className="bg-background-surface rounded-2xl border border-border p-4 mb-10">
            <Text className="text-text-secondary uppercase tracking-wider text-xs font-semibold mb-4">Settings</Text>
            
@@ -93,6 +160,47 @@ export default function ProfileScreen() {
            </Pressable>
         </View>
       </View>
+
+      {/* Time Picker Modal */}
+      <Modal
+        visible={showTimePicker}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowTimePicker(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 justify-end"
+          onPress={() => setShowTimePicker(false)}
+        >
+          <View className="bg-background-primary rounded-t-[28px] border-t border-l border-r border-border pb-8">
+            <View className="flex-row justify-between items-center px-6 py-4 border-b border-border">
+              <Text className="text-lg font-bold text-text-primary">Choose Reminder Time</Text>
+              <Pressable onPress={() => setShowTimePicker(false)}>
+                <Text className="text-accent-primary font-semibold">Done</Text>
+              </Pressable>
+            </View>
+            <ScrollView className="max-h-80" showsVerticalScrollIndicator={false}>
+              {TIME_OPTIONS.map((t) => {
+                const isSelected = t === preferences.reminderTime;
+                return (
+                  <Pressable
+                    key={t}
+                    onPress={() => handleTimeSelect(t)}
+                    className={`flex-row justify-between items-center px-6 py-3.5 border-b border-border/50 active:opacity-60 ${
+                      isSelected ? 'bg-accent-primary/10' : ''
+                    }`}
+                  >
+                    <Text className={`text-base font-medium ${isSelected ? 'text-accent-primary font-bold' : 'text-text-primary'}`}>
+                      {formatTime(t)}
+                    </Text>
+                    {isSelected && <Check size={18} color="#D47C2A" strokeWidth={2.5} />}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </Pressable>
+      </Modal>
     </ScrollView>
   );
 }

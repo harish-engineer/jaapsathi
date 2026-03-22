@@ -34,15 +34,10 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   },
 
   incrementCount: () => {
-    const { count, malaRounds } = get();
+    const { count, malaRounds, targetCount } = get();
     const newCount = count + 1;
-    let newMalaRounds = malaRounds;
-    
-    // Increment mala round after every 108, except at exactly 0.
-    if (newCount > 0 && newCount % 108 === 0) {
-      newMalaRounds += 1;
-    }
-
+    // Mala round increments every targetCount beads (27, 54, or 108)
+    const newMalaRounds = Math.floor(newCount / targetCount);
     set({ count: newCount, malaRounds: newMalaRounds });
   },
 
@@ -52,7 +47,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       mantraId: state.mantraId, // Keep the same mantra
       count: 0,
       malaRounds: 0,
-      targetCount: 108,
+      targetCount: state.targetCount, // Preserve targetCount for next session
       startTime: null,
     }));
   },
