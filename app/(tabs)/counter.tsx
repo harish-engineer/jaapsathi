@@ -7,6 +7,7 @@ import { usePreferencesStore } from '../../store/preferencesStore';
 import { useSankalpaStore } from '../../store/sankalpaStore';
 import { openDatabase, Mantra } from '../../db/database';
 import { Sunrise } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function MalaRing({ count }: { count: number }) {
   const BEAD_COUNT = 28;
@@ -74,7 +75,7 @@ export default function CounterScreen() {
         if (session.mantraId) {
           const m = await db.getFirstAsync<Mantra>(
             'SELECT * FROM mantras WHERE id = ?', 
-            [session.mantraId]
+            session.mantraId
           );
           if (m) {
             setActiveMantra(m);
@@ -84,7 +85,7 @@ export default function CounterScreen() {
           // fallback to om
           const m = await db.getFirstAsync<Mantra>(
             "SELECT * FROM mantras WHERE id = ?",
-            ['om']
+            'om'
           );
           if (m) {
             setActiveMantra(m);
@@ -108,7 +109,7 @@ export default function CounterScreen() {
         if (session.mantraId) {
           const m = await db.getFirstAsync<Mantra>(
             'SELECT * FROM mantras WHERE id = ?', 
-            [session.mantraId]
+            session.mantraId
           );
           if (m) setActiveMantra(m);
           else {
@@ -167,8 +168,10 @@ export default function CounterScreen() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <Pressable style={{ flex: 1, backgroundColor: '#FDF6EC' }} onPress={handleTap}>
+    <Pressable style={{ flex: 1, backgroundColor: '#FDF6EC', paddingTop: insets.top }} onPress={handleTap}>
       {/* Sankalpa Banner — only for matching mantra */}
       {(() => {
         const s = session.mantraId ? sankalpa.getSankalpaForMantra(session.mantraId) : null;

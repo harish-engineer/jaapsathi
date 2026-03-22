@@ -97,7 +97,7 @@ export const useSankalpaStore = create<SankalpaStoreState>((set, get) => ({
       const db = await openDatabase();
       await db.runAsync(
         'UPDATE sankalpas SET current_count = ?, status = ? WHERE id = ?',
-        [newCount, newStatus, sankalpa.id]
+        newCount, newStatus, sankalpa.id
       );
       set(state => ({
         sankalpas: state.sankalpas.map(s =>
@@ -114,7 +114,7 @@ export const useSankalpaStore = create<SankalpaStoreState>((set, get) => ({
   completeSankalpa: async (id: string) => {
     try {
       const db = await openDatabase();
-      await db.runAsync("UPDATE sankalpas SET status = 'completed' WHERE id = ?", [id]);
+      await db.runAsync("UPDATE sankalpas SET status = 'completed' WHERE id = ?", id);
       // Remove from active list since it's done
       set(state => ({ sankalpas: state.sankalpas.filter(s => s.id !== id) }));
     } catch (e) {
@@ -125,7 +125,7 @@ export const useSankalpaStore = create<SankalpaStoreState>((set, get) => ({
   pauseSankalpa: async (id: string) => {
     try {
       const db = await openDatabase();
-      await db.runAsync("UPDATE sankalpas SET status = 'paused' WHERE id = ?", [id]);
+      await db.runAsync("UPDATE sankalpas SET status = 'paused' WHERE id = ?", id);
       set(state => ({
         sankalpas: state.sankalpas.map(s => s.id === id ? { ...s, status: 'paused' } : s)
       }));
@@ -137,7 +137,7 @@ export const useSankalpaStore = create<SankalpaStoreState>((set, get) => ({
   resumeSankalpa: async (id: string) => {
     try {
       const db = await openDatabase();
-      await db.runAsync("UPDATE sankalpas SET status = 'active' WHERE id = ?", [id]);
+      await db.runAsync("UPDATE sankalpas SET status = 'active' WHERE id = ?", id);
       set(state => ({
         sankalpas: state.sankalpas.map(s => s.id === id ? { ...s, status: 'active' } : s)
       }));

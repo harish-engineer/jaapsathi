@@ -4,7 +4,9 @@ import { useRouter } from 'expo-router';
 import { openDatabase, Mantra } from '../../db/database';
 import { useSessionStore } from '../../store/sessionStore';
 import { usePreferencesStore } from '../../store/preferencesStore';
+import { useSankalpaStore } from '../../store/sankalpaStore';
 import { Search, CheckCircle2, Plus, X, Trash2 } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function MantrasScreen() {
   const router = useRouter();
@@ -18,6 +20,7 @@ export default function MantrasScreen() {
   
   const defaultBeadCount = usePreferencesStore(s => s.defaultBeadCount);
   const startSession = useSessionStore(s => s.startSession);
+  const loadAllSankalpas = useSankalpaStore(s => s.loadAllSankalpas);
 
   const loadMantras = async () => {
     const db = await openDatabase();
@@ -40,7 +43,11 @@ export default function MantrasScreen() {
           style: "destructive", 
           onPress: async () => {
             const db = await openDatabase();
-            await db.runAsync('DELETE FROM mantras WHERE id = ?', [id]);
+            // Delete associated sankalpas first
+            await db.runAsync('DELETE FROM sankalpas WHERE mantra_id = ?', id);
+            await db.runAsync('DELETE FROM mantras WHERE id = ?', id);
+            // Refresh the sankalpa store so the UI reflects the deletion
+            await loadAllSankalpas();
             await loadMantras();
             if (selectedMantra?.id === id) {
               setSelectedMantra(null);
@@ -62,13 +69,13 @@ export default function MantrasScreen() {
     
     await db.runAsync(
       'INSERT INTO mantras (id, tradition_id, deity, sanskrit, transliteration, meaning, recommended_count) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [id,
+      id,
       'custom',
       newMantra.deity.trim() || 'Custom',
       newMantra.sanskrit.trim() || newMantra.transliteration.trim(),
       newMantra.transliteration.trim(),
       newMantra.meaning.trim() || 'Personal custom mantra',
-      108]
+      108
     );
 
     await loadMantras();
@@ -100,8 +107,10 @@ export default function MantrasScreen() {
     }
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <View className="flex-1 bg-background-primary">
+    <View className="flex-1 bg-background-primary" style={{ paddingTop: insets.top }}>
       <View className="p-4">
         <View className="flex-row items-center gap-x-2">
           <View className="flex-1 flex-row items-center bg-background-surface border border-border rounded-xl px-4 py-3">

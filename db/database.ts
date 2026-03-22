@@ -38,9 +38,11 @@ export type Sankalpa = {
   created_at: string;
 };
 
+let _db: SQLite.SQLiteDatabase | null = null;
+let _dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+
 export async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
   if (Platform.OS === 'web') {
-    console.warn('SQLite is experimental on web. Returning mock for Phase 1 stability.');
     return {
       execAsync: async () => {},
       getAllAsync: async <T>() => [] as T[],
@@ -49,8 +51,20 @@ export async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
       closeAsync: async () => {},
     } as any;
   }
-  const db = await SQLite.openDatabaseAsync('jaapsathi.db');
-  return db;
+
+  // Return the cached instance immediately
+  if (_db) return _db;
+
+  // If already opening, wait for that promise (don't open twice)
+  if (_dbPromise) return _dbPromise;
+
+  _dbPromise = SQLite.openDatabaseAsync('jaapsathi.db').then(db => {
+    _db = db;
+    _dbPromise = null;
+    return db;
+  });
+
+  return _dbPromise;
 }
 
 export async function initDatabase() {

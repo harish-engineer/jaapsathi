@@ -4,6 +4,7 @@ import { usePreferencesStore } from '../../store/preferencesStore';
 import { openDatabase, DailyStat } from '../../db/database';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function StatsScreen() {
   const preferences = usePreferencesStore();
@@ -84,9 +85,12 @@ export default function StatsScreen() {
     };
   });
 
+  const insets = useSafeAreaInsets();
+
   return (
     <ScrollView 
       className="flex-1 bg-background-primary"
+      contentContainerStyle={{ paddingTop: insets.top }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D47C2A" />}
     >
       <View className="p-4 space-y-4">
@@ -116,35 +120,37 @@ export default function StatsScreen() {
           </View>
         </View>
 
-        <View className="bg-background-surface p-4 rounded-2xl border border-border mb-4">
-          <Text className="text-lg font-semibold text-text-primary mb-4">Last 4 Weeks</Text>
-          
-          {/* Weekday Header */}
-          <View className="flex-row justify-between w-full mb-2">
+        <View style={{ backgroundColor: '#FDF0DC', borderColor: '#E8D5B0', borderWidth: 1 }} className="rounded-[20px] p-4 mb-4">
+          <Text className="text-[#A08060] text-[11px] font-medium tracking-[0.15em] uppercase mb-4">Last 4 Weeks</Text>
+
+          {/* 7-column header */}
+          <View className="flex-row mb-2">
             {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
-              <Text key={i} className="text-text-hint font-medium text-center w-10">{day}</Text>
+              <Text key={i} style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#BCA38A', fontWeight: '600' }}>
+                {day}
+              </Text>
             ))}
           </View>
 
-          <View className="flex-row flex-wrap justify-between gap-y-2">
-            {days.map((day, i) => (
-              <View 
-               key={i} 
-               className="w-10 h-10 rounded-md"
-               style={{ 
-                 backgroundColor: getHeatmapColor(day.count),
-                 opacity: day.isFuture ? 0.3 : 1 
-               }}
-              />
-            ))}
-          </View>
-          <View className="flex-row justify-end items-center mt-5 space-x-2">
-            <Text className="text-xs text-text-secondary">Less</Text>
-            <View className="w-3 h-3 rounded-sm bg-[#FDF0DC]" />
-            <View className="w-3 h-3 rounded-sm bg-[#F0A830]" />
-            <View className="w-3 h-3 rounded-sm bg-[#D47C2A]" />
-            <View className="w-3 h-3 rounded-sm bg-[#8B4A1A]" />
-            <Text className="text-xs text-text-secondary ml-1">More</Text>
+          {/* 4 rows × 7 columns */}
+          {[0, 1, 2, 3].map(week => (
+            <View key={week} className="flex-row mb-1.5">
+              {days.slice(week * 7, week * 7 + 7).map((day, i) => (
+                <View key={i} style={{ flex: 1, aspectRatio: 1, marginHorizontal: 2, borderRadius: 6,
+                  backgroundColor: getHeatmapColor(day.count),
+                  opacity: day.isFuture ? 0.25 : 1 }} />
+              ))}
+            </View>
+          ))}
+
+          {/* Legend */}
+          <View className="flex-row justify-end items-center mt-3 gap-1.5">
+            <Text style={{ fontSize: 11, color: '#BCA38A', marginRight: 4 }}>Less</Text>
+            <View style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: '#FDF0DC', borderWidth: 1, borderColor: '#E8D5B0' }} />
+            <View style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: '#F0A830' }} />
+            <View style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: '#D47C2A' }} />
+            <View style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: '#8B4A1A' }} />
+            <Text style={{ fontSize: 11, color: '#BCA38A', marginLeft: 4 }}>More</Text>
           </View>
         </View>
 

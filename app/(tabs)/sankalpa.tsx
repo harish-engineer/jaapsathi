@@ -10,6 +10,7 @@ import { usePreferencesStore } from '../../store/preferencesStore';
 import { useRouter } from 'expo-router';
 import { openDatabase, Mantra, Sankalpa } from '../../db/database';
 import { Plus, Pause, Play, CheckCircle, Sunrise, ChevronRight } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TARGET_PRESETS = [
   { label: '1,008', value: 1008 },
@@ -202,8 +203,10 @@ export default function SankalpaScreen() {
     return <View style={styles.center}><ActivityIndicator color="#D47C2A" size="large" /></View>;
   }
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.scroll, { paddingTop: insets.top + 12 }]}>
 
       {/* Header row */}
       <View style={styles.pageHeader}>

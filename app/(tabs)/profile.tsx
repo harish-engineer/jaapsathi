@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { usePreferencesStore } from '../../store/preferencesStore';
 import { Bell, Flame, Check } from 'lucide-react-native';
 import { scheduleDailyReminder, cancelDailyReminder, requestNotificationPermissions } from '../../lib/notifications';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Generate time options every 30 mins
 const TIME_OPTIONS: string[] = [];
@@ -50,8 +51,10 @@ export default function ProfileScreen() {
     }
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <ScrollView className="flex-1 bg-background-primary">
+    <ScrollView className="flex-1 bg-background-primary" contentContainerStyle={{ paddingTop: insets.top }}>
       <View className="p-6 items-center">
         <View className="w-24 h-24 bg-background-surface border-[3px] border-accent-primary rounded-full items-center justify-center mb-4">
           <Text className="text-5xl">🧘🏽</Text>

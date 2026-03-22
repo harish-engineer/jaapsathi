@@ -43,7 +43,8 @@ export default function CompletionScreen() {
       hasSaved.current = true;
 
       const db = await openDatabase();
-      const m = await db.getFirstAsync<Mantra>('SELECT * FROM mantras WHERE id = ?', [session.mantraId as string]);
+      const safeMantraId = String(session.mantraId || 'om');
+      const m = await db.getFirstAsync<Mantra>('SELECT * FROM mantras WHERE id = ?', safeMantraId);
       if (m) setMantra(m);
 
       const id = Date.now().toString();
@@ -53,23 +54,23 @@ export default function CompletionScreen() {
       try {
         await db.runAsync(
           'INSERT INTO sessions (id, mantra_id, count, duration_seconds, completed_at) VALUES (?, ?, ?, ?, ?)',
-          [id, session.mantraId as string, session.count, durationSecs, nowIso]
+          String(id), safeMantraId, Number(session.count || 0), Number(durationSecs || 0), String(nowIso)
         );
 
         const existingStat = await db.getFirstAsync<{ total_count: number, session_count: number }>(
           'SELECT total_count, session_count FROM daily_stats WHERE date = ?',
-          [todayString]
+          String(todayString)
         );
 
         if (existingStat) {
           await db.runAsync(
             'UPDATE daily_stats SET total_count = ?, session_count = ? WHERE date = ?',
-            [existingStat.total_count + session.count, existingStat.session_count + 1, todayString]
+            Number(existingStat.total_count + session.count), Number(existingStat.session_count + 1), String(todayString)
           );
         } else {
           await db.runAsync(
             'INSERT INTO daily_stats (date, total_count, session_count) VALUES (?, ?, ?)',
-            [todayString, session.count, 1]
+            String(todayString), Number(session.count || 0), 1
           );
         }
 
@@ -78,9 +79,9 @@ export default function CompletionScreen() {
         setIsLongestStreak(preferences.currentStreak >= prevBest);
 
         // Contribute to active Sankalpa — only if this session's mantra matches
-        const matchingSankalpa = sankalpa.getSankalpaForMantra(session.mantraId ?? '');
+        const matchingSankalpa = sankalpa.getSankalpaForMantra(safeMantraId);
         if (matchingSankalpa) {
-          await sankalpa.addProgress(session.mantraId!, session.count);
+          await sankalpa.addProgress(safeMantraId, Number(session.count || 0));
         }
 
       } catch (err) {
@@ -217,7 +218,7 @@ export default function CompletionScreen() {
         {/* Action Buttons */}
         <View style={styles.buttonsRow}>
           <Pressable onPress={handleFinish} style={styles.btnPrimary}>
-            <Text style={styles.btnPrimaryText}>New Session</Text>
+            <Text style={styles.btnPrimaryText}>Continue Jaap</Text>
           </Pressable>
           <Pressable onPress={handleViewStats} style={styles.btnSecondary}>
             <Text style={styles.btnSecondaryText}>View Stats</Text>
