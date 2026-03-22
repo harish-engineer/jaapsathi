@@ -189,30 +189,39 @@ export default function CounterScreen() {
       })()}
 
       <View className="flex-1 justify-center items-center">
-        <MalaRing count={session.count} />
-        
-        <View style={StyleSheet.absoluteFill} className="justify-center items-center pointer-events-none">
-          <Text style={{ fontSize: 80, fontWeight: '300', color: '#3D2010', includeFontPadding: false }}>
-            {session.count}
+        <View className="items-center mb-20">
+          <Text className="text-[#8C6D51] text-[15px] font-medium tracking-[0.15em] uppercase text-center px-4">
+            {activeMantra?.transliteration || 'OM'}
           </Text>
-          <Text className="text-accent-primary text-lg font-medium mt-1">
-            {session.malaRounds > 0 ? `${session.malaRounds} Mala` : 'Mala'}
+          <Text className="text-[#BCA38A] text-[11px] font-medium tracking-[0.20em] uppercase text-center mt-3">
+            Jaap Session
           </Text>
+          <View style={{ height: 1, backgroundColor: '#E0CBAE', width: 140, marginTop: 16 }} />
+        </View>
+
+        {/* Ring & Center Text Wrapper */}
+        <View style={{ width: 240, height: 240 }} className="justify-center items-center">
+          <MalaRing count={session.count} />
+          
+          <View style={StyleSheet.absoluteFill} className="justify-center items-center pointer-events-none">
+            <Text style={{ fontSize: 80, fontWeight: '300', color: '#3D2010', includeFontPadding: false }}>
+              {session.count}
+            </Text>
+            <Text className="text-[#BCA38A] text-[13px] font-medium tracking-[0.1em] uppercase mt-1">
+              Of {session.targetCount}
+            </Text>
+          </View>
         </View>
       </View>
 
-      <View className="flex-row justify-around mb-8 px-4">
-        <View className="bg-background-surface px-4 py-2 rounded-full border border-border items-center">
-          <Text className="text-xs text-text-secondary uppercase tracking-wider">Beads/Mala</Text>
-          <Text className="text-base font-semibold text-text-primary mt-1">{session.targetCount}</Text>
+      <View className="flex-row justify-center gap-4 mb-12 px-6 w-full max-w-[340px] self-center">
+        <View style={{ backgroundColor: '#FDF0DC', borderColor: '#E8D5B0', borderWidth: 1 }} className="flex-1 py-5 rounded-3xl items-center justify-center">
+          <Text className="text-[#BCA38A] text-[11px] font-medium tracking-[0.15em] uppercase mb-1">Streak</Text>
+          <Text className="text-[#D47C2A] text-[22px] mt-1">{preferences.currentStreak} days</Text>
         </View>
-        <View className="bg-background-surface px-4 py-2 rounded-full border border-border items-center">
-          <Text className="text-xs text-text-secondary uppercase tracking-wider">Streak</Text>
-          <Text className="text-base font-semibold text-accent-bright mt-1">{preferences.currentStreak} Days</Text>
-        </View>
-        <View className="bg-background-surface px-4 py-2 rounded-full border border-border items-center">
-          <Text className="text-xs text-text-secondary uppercase tracking-wider">Time</Text>
-          <Text className="text-base font-semibold text-text-primary mt-1">{formatTime(elapsedSeconds)}</Text>
+        <View style={{ backgroundColor: '#FDF0DC', borderColor: '#E8D5B0', borderWidth: 1 }} className="flex-1 py-5 rounded-3xl items-center justify-center">
+          <Text className="text-[#BCA38A] text-[11px] font-medium tracking-[0.15em] uppercase mb-1">Time</Text>
+          <Text className="text-[#3D2010] text-[22px] mt-1">{formatTime(elapsedSeconds)}</Text>
         </View>
       </View>
 

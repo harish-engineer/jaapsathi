@@ -90,25 +90,29 @@ export default function StatsScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#D47C2A" />}
     >
       <View className="p-4 space-y-4">
-        <View className="flex-row space-x-4 mb-4">
-          <View className="flex-1 bg-background-surface p-4 rounded-2xl border border-border items-center">
-            <Text className="text-sm text-text-secondary mb-1">Total Jaap</Text>
-            <Text className="text-2xl font-bold text-accent-primary">{stats.totalJaap}</Text>
+        <View className="flex-row gap-3 mb-3">
+          <View style={{ backgroundColor: '#FDF0DC', borderColor: '#E8D5B0', borderWidth: 1 }} className="flex-[1.5] py-5 rounded-[20px] items-center">
+            <Text className="text-[#A08060] text-[11px] font-medium tracking-[0.15em] uppercase mb-1">Total Jaap</Text>
+            <Text className="text-[#D47C2A] text-[28px] font-bold">{stats.totalJaap.toLocaleString()}</Text>
           </View>
-          <View className="flex-1 bg-background-surface p-4 rounded-2xl border border-border items-center">
-            <Text className="text-sm text-text-secondary mb-1">Current Streak</Text>
-            <Text className="text-2xl font-bold text-accent-bright">{preferences.currentStreak} 🔥</Text>
+          <View style={{ backgroundColor: '#FDF0DC', borderColor: '#E8D5B0', borderWidth: 1 }} className="flex-1 py-5 rounded-[20px] items-center">
+            <Text className="text-[#A08060] text-[11px] font-medium tracking-[0.15em] uppercase mb-1">Streak</Text>
+            <Text className="text-[#D47C2A] text-[28px] font-bold">{preferences.currentStreak} 🔥</Text>
           </View>
         </View>
 
-        <View className="flex-row space-x-4 mb-4">
-          <View className="flex-1 bg-background-surface p-4 rounded-2xl border border-border items-center">
-            <Text className="text-sm text-text-secondary mb-1">Total Malas</Text>
-            <Text className="text-xl font-bold text-text-primary">{stats.totalMalas}</Text>
+        <View className="flex-row gap-3 mb-8">
+          <View style={{ backgroundColor: '#FDF0DC', borderColor: '#E8D5B0', borderWidth: 1 }} className="flex-1 py-4 rounded-[20px] items-center">
+            <Text className="text-[#A08060] text-[10px] font-medium tracking-[0.1em] uppercase mb-1">Sessions</Text>
+            <Text className="text-[#3D2010] text-[22px] font-medium">{stats.sessions}</Text>
           </View>
-          <View className="flex-1 bg-background-surface p-4 rounded-2xl border border-border items-center">
-            <Text className="text-sm text-text-secondary mb-1">Sessions</Text>
-            <Text className="text-xl font-bold text-text-primary">{stats.sessions}</Text>
+          <View style={{ backgroundColor: '#FDF0DC', borderColor: '#E8D5B0', borderWidth: 1 }} className="flex-1 py-4 rounded-[20px] items-center">
+            <Text className="text-[#A08060] text-[10px] font-medium tracking-[0.1em] uppercase mb-1">Malas</Text>
+            <Text className="text-[#3D2010] text-[22px] font-medium">{stats.totalMalas}</Text>
+          </View>
+          <View style={{ backgroundColor: '#FDF0DC', borderColor: '#E8D5B0', borderWidth: 1 }} className="flex-1 py-4 rounded-[20px] items-center">
+            <Text className="text-[#A08060] text-[10px] font-medium tracking-[0.1em] uppercase mb-1">Avg/Day</Text>
+            <Text className="text-[#3D2010] text-[22px] font-medium">{dailyStats.length ? Math.round(stats.totalJaap / dailyStats.length) : 0}</Text>
           </View>
         </View>
 
