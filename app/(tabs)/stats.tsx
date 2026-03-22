@@ -155,13 +155,15 @@ export default function StatsScreen() {
           ) : (
              recentSessions.map((session, i) => (
               <View key={i} className="bg-background-surface p-4 rounded-xl border border-border mb-3 flex-row justify-between items-center">
-                <View>
-                  <Text className="text-accent-primary font-medium text-lg">{session.sanskrit}</Text>
-                  <Text className="text-text-secondary text-sm">
+                <View className="flex-1 mr-4">
+                  <Text className="text-accent-primary font-medium text-lg" numberOfLines={2}>
+                    {session.sanskrit}
+                  </Text>
+                  <Text className="text-text-secondary text-sm mt-1">
                     {new Date(session.completed_at).toLocaleDateString()}
                   </Text>
                 </View>
-                <View className="items-end">
+                <View className="items-end shrink-0">
                   <Text className="text-text-primary font-bold text-xl">{session.count}</Text>
                   <Text className="text-text-hint text-xs uppercase">{Math.floor(session.duration_seconds/60)}m {session.duration_seconds%60}s</Text>
                 </View>

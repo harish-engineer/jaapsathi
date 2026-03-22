@@ -74,7 +74,7 @@ export default function CounterScreen() {
         if (session.mantraId) {
           const m = await db.getFirstAsync<Mantra>(
             'SELECT * FROM mantras WHERE id = ?', 
-            session.mantraId
+            [session.mantraId]
           );
           if (m) {
             setActiveMantra(m);
@@ -84,7 +84,7 @@ export default function CounterScreen() {
           // fallback to om
           const m = await db.getFirstAsync<Mantra>(
             "SELECT * FROM mantras WHERE id = ?",
-            'om'
+            ['om']
           );
           if (m) {
             setActiveMantra(m);
@@ -108,7 +108,7 @@ export default function CounterScreen() {
         if (session.mantraId) {
           const m = await db.getFirstAsync<Mantra>(
             'SELECT * FROM mantras WHERE id = ?', 
-            session.mantraId
+            [session.mantraId]
           );
           if (m) setActiveMantra(m);
           else {
