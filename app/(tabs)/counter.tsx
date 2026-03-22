@@ -4,7 +4,9 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useSessionStore } from '../../store/sessionStore';
 import { usePreferencesStore } from '../../store/preferencesStore';
+import { useSankalpaStore } from '../../store/sankalpaStore';
 import { openDatabase, Mantra } from '../../db/database';
+import { Sunrise } from 'lucide-react-native';
 
 function MalaRing({ count }: { count: number }) {
   const BEAD_COUNT = 28;
@@ -60,6 +62,9 @@ export default function CounterScreen() {
   
   const [activeMantra, setActiveMantra] = useState<Mantra | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const sankalpa = useSankalpaStore();
+
+  useEffect(() => { sankalpa.loadAllSankalpas(); }, []);
 
   // Initialize session if not active
   useEffect(() => {
@@ -164,12 +169,24 @@ export default function CounterScreen() {
 
   return (
     <Pressable style={{ flex: 1, backgroundColor: '#FDF6EC' }} onPress={handleTap}>
-      <View className="items-center mt-12 px-6">
-        <Text className="text-xl font-semibold text-text-primary text-center">
-          {activeMantra?.transliteration || 'Loading...'}
-        </Text>
-        <Text className="text-sm text-text-secondary mt-1 text-center">Current Session</Text>
-      </View>
+      {/* Sankalpa Banner — only for matching mantra */}
+      {(() => {
+        const s = session.mantraId ? sankalpa.getSankalpaForMantra(session.mantraId) : null;
+        if (!s || s.status !== 'active') return null;
+        const pct = Math.min(100, Math.round(s.current_count / s.target_count * 100));
+        return (
+          <View style={counterStyles.sankalpaBar}>
+            <Sunrise size={14} color="#D47C2A" />
+            <Text style={counterStyles.sankalpaText} numberOfLines={1}>
+              Sankalpa: {s.current_count.toLocaleString()}/{s.target_count.toLocaleString()}
+            </Text>
+            <View style={counterStyles.sankalpaPillBg}>
+              <View style={[counterStyles.sankalpaPillFill, { width: `${pct}%` as any }]} />
+            </View>
+            <Text style={counterStyles.sankalpaPct}>{pct}%</Text>
+          </View>
+        );
+      })()}
 
       <View className="flex-1 justify-center items-center">
         <MalaRing count={session.count} />
@@ -237,3 +254,16 @@ const styles = StyleSheet.create({
     borderRadius: 7,
   }
 });
+
+const counterStyles = StyleSheet.create({
+  sankalpaBar: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#FDF0DC', borderBottomWidth: 1, borderColor: '#E8D5B0',
+    paddingHorizontal: 16, paddingVertical: 8, gap: 8,
+  },
+  sankalpaText: { fontSize: 12, color: '#3D2010', fontWeight: '600', flex: 1 },
+  sankalpaPillBg: { width: 60, height: 6, backgroundColor: '#E8D5B0', borderRadius: 3, overflow: 'hidden' },
+  sankalpaPillFill: { height: 6, backgroundColor: '#D47C2A', borderRadius: 3 },
+  sankalpaPct: { fontSize: 11, color: '#D47C2A', fontWeight: '700', minWidth: 32, textAlign: 'right' },
+});
+

@@ -25,6 +25,19 @@ export type DailyStat = {
   session_count: number;
 };
 
+export type Sankalpa = {
+  id: string;
+  mantra_id: string;
+  mantra_name: string;
+  target_count: number;
+  current_count: number;
+  duration_days: number;
+  start_date: string;
+  end_date: string;
+  status: 'active' | 'completed' | 'paused';
+  created_at: string;
+};
+
 export async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
   if (Platform.OS === 'web') {
     console.warn('SQLite is experimental on web. Returning mock for Phase 1 stability.');
@@ -69,6 +82,19 @@ export async function initDatabase() {
       date TEXT PRIMARY KEY,
       total_count INTEGER DEFAULT 0,
       session_count INTEGER DEFAULT 0
+    );
+
+    CREATE TABLE IF NOT EXISTS sankalpas (
+      id TEXT PRIMARY KEY,
+      mantra_id TEXT NOT NULL,
+      mantra_name TEXT NOT NULL,
+      target_count INTEGER NOT NULL,
+      current_count INTEGER DEFAULT 0,
+      duration_days INTEGER NOT NULL,
+      start_date TEXT NOT NULL,
+      end_date TEXT NOT NULL,
+      status TEXT DEFAULT 'active',
+      created_at TEXT NOT NULL
     );
   `);
 

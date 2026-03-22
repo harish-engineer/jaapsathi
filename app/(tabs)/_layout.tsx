@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Book, CircleDashed, BarChart2, User } from 'lucide-react-native';
+import { Book, CircleDashed, BarChart2, User, Sunrise } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -23,6 +23,13 @@ export default function TabLayout() {
         options={{
           title: 'Mantras',
           tabBarIcon: ({ color, size }) => <Book size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="sankalpa"
+        options={{
+          title: 'Sankalpa',
+          tabBarIcon: ({ color, size }) => <Sunrise size={size} color={color} />,
         }}
       />
       <Tabs.Screen

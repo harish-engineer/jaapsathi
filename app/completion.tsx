@@ -3,6 +3,7 @@ import { View, Text, Pressable, ActivityIndicator, Alert, ScrollView, StyleSheet
 import { useRouter } from 'expo-router';
 import { useSessionStore } from '../store/sessionStore';
 import { usePreferencesStore } from '../store/preferencesStore';
+import { useSankalpaStore } from '../store/sankalpaStore';
 import { openDatabase, Mantra } from '../db/database';
 import ViewShot from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
@@ -19,6 +20,7 @@ export default function CompletionScreen() {
   const router = useRouter();
   const session = useSessionStore();
   const preferences = usePreferencesStore();
+  const sankalpa = useSankalpaStore();
 
   const [mantra, setMantra] = useState<Mantra | null>(null);
   const [isSaving, setIsSaving] = useState(true);
@@ -41,7 +43,7 @@ export default function CompletionScreen() {
       hasSaved.current = true;
 
       const db = await openDatabase();
-      const m = await db.getFirstAsync<Mantra>('SELECT * FROM mantras WHERE id = ?', session.mantraId);
+      const m = await db.getFirstAsync<Mantra>('SELECT * FROM mantras WHERE id = ?', [session.mantraId]);
       if (m) setMantra(m);
 
       const id = Date.now().toString();
@@ -51,31 +53,35 @@ export default function CompletionScreen() {
       try {
         await db.runAsync(
           'INSERT INTO sessions (id, mantra_id, count, duration_seconds, completed_at) VALUES (?, ?, ?, ?, ?)',
-          id, session.mantraId, session.count, durationSecs, nowIso
+          [id, session.mantraId, session.count, durationSecs, nowIso]
         );
 
         const existingStat = await db.getFirstAsync<{ total_count: number, session_count: number }>(
           'SELECT total_count, session_count FROM daily_stats WHERE date = ?',
-          todayString
+          [todayString]
         );
 
         if (existingStat) {
           await db.runAsync(
             'UPDATE daily_stats SET total_count = ?, session_count = ? WHERE date = ?',
-            existingStat.total_count + session.count,
-            existingStat.session_count + 1,
-            todayString
+            [existingStat.total_count + session.count, existingStat.session_count + 1, todayString]
           );
         } else {
           await db.runAsync(
             'INSERT INTO daily_stats (date, total_count, session_count) VALUES (?, ?, ?)',
-            todayString, session.count, 1
+            [todayString, session.count, 1]
           );
         }
 
         const prevBest = preferences.bestStreak;
         preferences.updateStreak(todayString);
         setIsLongestStreak(preferences.currentStreak >= prevBest);
+
+        // Contribute to active Sankalpa — only if this session's mantra matches
+        const matchingSankalpa = sankalpa.getSankalpaForMantra(session.mantraId ?? '');
+        if (matchingSankalpa) {
+          await sankalpa.addProgress(session.mantraId!, session.count);
+        }
 
       } catch (err) {
         console.warn('Error saving session:', err);
