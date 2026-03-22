@@ -43,7 +43,7 @@ export default function CompletionScreen() {
       hasSaved.current = true;
 
       const db = await openDatabase();
-      const m = await db.getFirstAsync<Mantra>('SELECT * FROM mantras WHERE id = ?', [session.mantraId]);
+      const m = await db.getFirstAsync<Mantra>('SELECT * FROM mantras WHERE id = ?', session.mantraId as string);
       if (m) setMantra(m);
 
       const id = Date.now().toString();
@@ -53,23 +53,23 @@ export default function CompletionScreen() {
       try {
         await db.runAsync(
           'INSERT INTO sessions (id, mantra_id, count, duration_seconds, completed_at) VALUES (?, ?, ?, ?, ?)',
-          [id, session.mantraId, session.count, durationSecs, nowIso]
+          id, session.mantraId as string, session.count, durationSecs, nowIso
         );
 
         const existingStat = await db.getFirstAsync<{ total_count: number, session_count: number }>(
           'SELECT total_count, session_count FROM daily_stats WHERE date = ?',
-          [todayString]
+          todayString
         );
 
         if (existingStat) {
           await db.runAsync(
             'UPDATE daily_stats SET total_count = ?, session_count = ? WHERE date = ?',
-            [existingStat.total_count + session.count, existingStat.session_count + 1, todayString]
+            existingStat.total_count + session.count, existingStat.session_count + 1, todayString
           );
         } else {
           await db.runAsync(
             'INSERT INTO daily_stats (date, total_count, session_count) VALUES (?, ?, ?)',
-            [todayString, session.count, 1]
+            todayString, session.count, 1
           );
         }
 

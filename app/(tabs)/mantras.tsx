@@ -40,7 +40,7 @@ export default function MantrasScreen() {
           style: "destructive", 
           onPress: async () => {
             const db = await openDatabase();
-            await db.runAsync('DELETE FROM mantras WHERE id = ?', [id]);
+            await db.runAsync('DELETE FROM mantras WHERE id = ?', id);
             await loadMantras();
             if (selectedMantra?.id === id) {
               setSelectedMantra(null);
@@ -62,13 +62,13 @@ export default function MantrasScreen() {
     
     await db.runAsync(
       'INSERT INTO mantras (id, tradition_id, deity, sanskrit, transliteration, meaning, recommended_count) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [id,
+      id,
       'custom',
       newMantra.deity.trim() || 'Custom',
       newMantra.sanskrit.trim() || newMantra.transliteration.trim(),
       newMantra.transliteration.trim(),
       newMantra.meaning.trim() || 'Personal custom mantra',
-      108]
+      108
     );
 
     await loadMantras();

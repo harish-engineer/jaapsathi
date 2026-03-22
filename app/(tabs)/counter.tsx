@@ -203,7 +203,7 @@ export default function CounterScreen() {
 
       <View className="flex-row justify-around mb-8 px-4">
         <View className="bg-background-surface px-4 py-2 rounded-full border border-border items-center">
-          <Text className="text-xs text-text-secondary uppercase tracking-wider">Sankalp</Text>
+          <Text className="text-xs text-text-secondary uppercase tracking-wider">Beads/Mala</Text>
           <Text className="text-base font-semibold text-text-primary mt-1">{session.targetCount}</Text>
         </View>
         <View className="bg-background-surface px-4 py-2 rounded-full border border-border items-center">

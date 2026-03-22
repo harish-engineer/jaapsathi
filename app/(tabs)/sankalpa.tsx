@@ -5,6 +5,9 @@ import {
 } from 'react-native';
 import { TextInput } from 'react-native';
 import { useSankalpaStore } from '../../store/sankalpaStore';
+import { useSessionStore } from '../../store/sessionStore';
+import { usePreferencesStore } from '../../store/preferencesStore';
+import { useRouter } from 'expo-router';
 import { openDatabase, Mantra, Sankalpa } from '../../db/database';
 import { Plus, Pause, Play, CheckCircle, Sunrise, ChevronRight } from 'lucide-react-native';
 
@@ -23,11 +26,13 @@ const DURATION_PRESETS = [
 
 function SankalpaCard({
   sankalpa,
+  onStartJaap,
   onPause,
   onResume,
   onComplete,
 }: {
   sankalpa: Sankalpa;
+  onStartJaap: () => void;
   onPause: () => void;
   onResume: () => void;
   onComplete: () => void;
@@ -81,28 +86,39 @@ function SankalpaCard({
       </View>
 
       {/* Actions */}
-      <View style={styles.actionsRow}>
-        {sankalpa.status === 'active' ? (
-          <Pressable style={[styles.actionBtn, styles.actionBtnOutline]} onPress={onPause}>
-            <Pause size={15} color="#D47C2A" />
-            <Text style={styles.actionBtnOutlineText}>Pause</Text>
-          </Pressable>
-        ) : (
-          <Pressable style={[styles.actionBtn, styles.actionBtnPrimary]} onPress={onResume}>
-            <Play size={15} color="#fff" />
-            <Text style={styles.actionBtnText}>Resume</Text>
+      <View style={{ marginTop: 4 }}>
+        {sankalpa.status === 'active' && (
+          <Pressable style={[styles.actionBtn, styles.actionBtnPrimary, { marginBottom: 10 }]} onPress={onStartJaap}>
+            <Sunrise size={16} color="#fff" />
+            <Text style={styles.actionBtnText}>Start Jaap</Text>
           </Pressable>
         )}
-        <Pressable style={[styles.actionBtn, styles.actionBtnDark]} onPress={onComplete}>
-          <CheckCircle size={15} color="#fff" />
-          <Text style={styles.actionBtnText}>Fulfilled</Text>
-        </Pressable>
+        <View style={styles.actionsRow}>
+          {sankalpa.status === 'active' ? (
+            <Pressable style={[styles.actionBtn, styles.actionBtnOutline]} onPress={onPause}>
+              <Pause size={15} color="#D47C2A" />
+              <Text style={styles.actionBtnOutlineText}>Pause</Text>
+            </Pressable>
+          ) : (
+            <Pressable style={[styles.actionBtn, styles.actionBtnPrimary]} onPress={onResume}>
+              <Play size={15} color="#fff" />
+              <Text style={styles.actionBtnText}>Resume</Text>
+            </Pressable>
+          )}
+          <Pressable style={[styles.actionBtn, styles.actionBtnDark]} onPress={onComplete}>
+            <CheckCircle size={15} color="#fff" />
+            <Text style={styles.actionBtnText}>Fulfilled</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
 }
 
 export default function SankalpaScreen() {
+  const router = useRouter();
+  const session = useSessionStore();
+  const preferences = usePreferencesStore();
   const { sankalpas, isLoading, loadAllSankalpas, createSankalpa, pauseSankalpa, resumeSankalpa, completeSankalpa, getSankalpaForMantra } = useSankalpaStore();
 
   const [showCreate, setShowCreate] = useState(false);
@@ -171,6 +187,11 @@ export default function SankalpaScreen() {
     ]);
   };
 
+  const handleStartJaap = (mantraId: string) => {
+    session.startSession(mantraId, preferences.defaultBeadCount);
+    router.replace('/counter');
+  };
+
   // Which mantras already have an active/paused sankalpa (blocked from new creation)
   const blockedMantraIds = new Set(sankalpas.map(s => s.mantra_id));
 
@@ -214,6 +235,7 @@ export default function SankalpaScreen() {
           <SankalpaCard
             key={s.id}
             sankalpa={s}
+            onStartJaap={() => handleStartJaap(s.mantra_id)}
             onPause={() => handlePause(s)}
             onResume={() => resumeSankalpa(s.id)}
             onComplete={() => handleComplete(s)}
